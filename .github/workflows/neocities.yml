@@ -10,9 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Preparar archivos limpios
+        run: |
+          mkdir -p public
+          cp index.html public/
       - name: Deploy to Neocities
         uses: bcomnes/deploy-to-neocities@v2
         with:
           api_token: ${{ secrets.NEOCITIES_API_TOKEN }}
           cleanup: false
-          dist_dir: .
+          dist_dir: public
