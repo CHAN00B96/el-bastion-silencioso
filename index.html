@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="green">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EL BASTIÓN SILENCIOSO // Terminal Táctica Campo 6-B</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root,
+    [data-theme="green"] {
+      --bg-deep: #070908;
+      --bg-panel: #0c110e;
+      --bg-panel-alt: #101713;
+      --border-main: #1f3b29;
+      --border-bright: #33ff66;
+      --primary: #33ff66;
+      --primary-dim: #1c993c;
+      --primary-glow: rgba(51, 255, 102, 0.22);
+      --accent: #ffb000;
+      --accent-dim: rgba(255, 176, 0, 0.16);
+      --text-main: #d8f5df;
+      --text-muted: #7aa386;
+      --grid-line: rgba(51, 255, 102, 0.045);
+    }
+
+    [data-theme="amber"] {
+      --bg-deep: #0b0804;
+      --bg-panel: #140f08;
+      --bg-panel-alt: #1c140a;
+      --border-main: #4a3312;
+      --border-bright: #ffb000;
+      --primary: #ffb000;
+      --primary-dim: #b37b00;
+      --primary-glow: rgba(255, 176, 0, 0.22);
+      --accent: #ff5e3a;
+      --accent-dim: rgba(255, 94, 58, 0.16);
+      --text-main: #f7e6c4;
+      --text-muted: #ad8d58;
+      --grid-line: rgba(255, 176, 0, 0.045);
+    }
+
+    [data-theme="synth"] {
+      --bg-deep: #090612;
+      --bg-panel: #110c21;
+      --bg-panel-alt: #17102c;
+      --border-main: #352461;
+      --border-bright: #00f3ff;
+      --primary: #00f3ff;
+      --primary-dim: #0099a8;
+      --primary-glow: rgba(0, 243, 255, 0.22);
+      --accent: #ff2a85;
+      --accent-dim: rgba(255, 42, 133, 0.18);
+      --text-main: #e6f4ff;
+      --text-muted: #8b82b8;
+      --grid-line: rgba(0, 243, 255, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      font-family: 'Share Tech Mono', 'Courier Prime', monospace;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    body {
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Overlay CRT Scanlines */
+    .crt-overlay {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background:
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%),
+        radial-gradient(circle at center, transparent 62%, rgba(0, 0, 0, 0.55) 100%);
+      background-size: 100% 4px, 100% 100%;
+      opacity: 0.75;
+      transition: opacity 0.25s ease;
+    }
+
+    body.crt-off .crt-overlay {
+      opacity: 0;
+    }
+
+    .term-box {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-main);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 22px rgba(0, 0, 0, 0.45);
+      position: relative;
+    }
+
+    .term-box-header {
+      border-bottom: 1px dashed var(--border-main);
+      color: var(--primary);
+    }
+
+    .glow-primary {
+      color: var(--primary);
+      text-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .glow-accent {
+      color: var(--accent);
+    }
+
+    .btn-term {
+      background-color: var(--bg-panel-alt);
+      border: 1px solid var(--border-main);
+      color: var(--text-main);
+      transition: all 0.16s ease;
+    }
+
+    .btn-term:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background-color: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      transition: all 0.16s ease;
+    }
+
+    .btn-accent:hover {
+      background-color: var(--accent);
+      color: var(--bg-deep);
+      box-shadow: 0 0 14px var(--accent-dim);
+    }
+
+    .nav-item.active {
+      background-color: var(--primary-glow);
+      border-left: 3px solid var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .badge-88x31 {
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid var(--border-main);
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--bg-deep),
+        var(--bg-deep) 6px,
+        var(--bg-panel-alt) 6px,
+        var(--bg-panel-alt) 12px
+      );
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px 6px;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    .novel-prose {
+      font-family: 'Courier Prime', monospace;
+      line-height: 1.75;
+    }
+
+    @keyframes blinkCursor {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    .cursor-blink {
+      animation: blinkCursor 1s infinite;
+    }
+
+    /* Scrollbar retro */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-deep);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-main);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dim);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-emerald-500/30 selection:text-white">
+
+  <!-- Capa CRT -->
+  <div class="crt-overlay" aria-hidden="true"></div>
+
+  <!-- Contenedor Principal -->
+  <div class="max-w-6xl mx-auto px-3 sm:px-5 py-3 sm:py-5 space-y-4">
+
+    <!-- BARRA SUPERIOR DE ESTADO DEL SISTEMA -->
+    <header class="term-box rounded px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <span class="px-2 py-0.5 rounded bg-[var(--primary-glow)] border border-[var(--primary)] glow-primary font-bold">
+          [ ~/BASTION_SILENCIOSO ]
+        </span>
+        <span class="text-[var(--text-muted)] hidden md:inline">|</span>
+        <span class="text-[var(--text-muted)]">
+          NODO: <strong class="text-[var(--text-main)]">CAMPO MILITAR 6-B // COAHUILA</strong>
+        </span>
+      </div>
+
+      <!-- Controles de Tema y CRT -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 ml-auto">
+        <span class="text-[10px] text-[var(--text-muted)] hidden sm:inline">FÓSFORO:</span>
+        <button onclick="setTheme('green')" id="btn-theme-green" class="btn-term px-2 py-1 rounded text-[11px] font-bold cursor-pointer" title="Fósforo Verde Militar">
+          VERDE
+        </button>
+        <button onclick="setTheme('amber')" id="btn-theme-amber" class="btn-term px-2 py-1 rounded text-[11px] font-bold cursor-pointer" title="Ámbar Táctico">
+          ÁMBAR
+        </button>
+        <button onclick="setTheme('synth')" id="btn-theme-synth" class="btn-term px-2 py-1 rounded text-[11px] font-bold cursor-pointer" title="Neón Neocities">
+          SYNTH
+        </button>
+        <button onclick="toggleCRT()" id="btn-crt" class="btn-accent px-2 py-1 rounded text-[11px] font-bold cursor-pointer ml-1">
+          CRT: ON
+        </button>
+      </div>
+    </header>
+
+    <!-- BANNER TÍTULO ASCII / TÁCTICO -->
+    <section class="term-box rounded p-4 sm:p-6 text-center overflow-hidden">
+      <div class="text-[10px] sm:text-xs text-[var(--text-muted)] tracking-widest mb-2">
+        +---[ ARCHIVO DESCLASIFICADO // DIARIO DE OPERACIONES (NO OFICIAL) ]---+
+      </div>
+
+      <!-- Arte ASCII en pantallas medianas/grandes -->
+      <pre class="hidden md:block text-[10px] lg:text-xs leading-tight glow-primary font-bold select-none overflow-x-auto mx-auto" aria-hidden="true">
+███████╗██╗         ██████╗  █████╗ ███████╗████████╗██╗ ██████╗ ███╗   ██╗
+██╔════╝██║         ██╔══██╗██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+█████╗  ██║         ██████╔╝███████║███████╗   ██║   ██║██║   ██║██╔██╗ ██║
+██╔══╝  ██║         ██╔══██╗██╔══██║╚════██║   ██║   ██║██║   ██║██║╚██╗██║
+███████╗███████╗    ██████╔╝██║  ██║███████║   ██║   ██║╚██████╔╝██║ ╚████║
+╚══════╝╚══════╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+      ███████╗██╗██╗     ███████╗███╗   ██╗ ██████╗██╗ ██████╗ ███████╗ ██████╗ 
+      ██╔════╝██║██║     ██╔════╝████╗  ██║██╔════╝██║██╔═══██╗██╔════╝██╔═══██╗
+      ███████╗██║██║     █████╗  ██╔██╗ ██║██║     ██║██║   ██║███████╗██║   ██║
+      ╚════██║██║██║     ██╔══╝  ██║╚██╗██║██║     ██║██║   ██║╚════██║██║   ██║
+      ███████║██║███████╗███████╗██║ ╚████║╚██████╗██║╚██████╔╝███████║╚██████╔╝
+      ╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝ ╚═════╝ ╚══════╝ ╚═════╝ 
+      </pre>
+
+      <!-- Título optimizado para móvil -->
+      <h1 class="md:hidden text-2xl sm:text-3xl font-bold tracking-widest glow-primary">
+        EL BASTIÓN SILENCIOSO
+      </h1>
+
+      <p class="mt-2 text-xs sm:text-sm glow-accent tracking-wide">
+        // CRÓNICAS DEL OFICIAL QUE SOLO QUERÍA COMER EN PAZ //
+      </p>
+
+      <div class="mt-3 pt-2.5 border-t border-dashed border-[var(--border-main)] flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-muted)]">
+        <span>[ EVENTO ZERO: 05-NOV-2026 // 08:14 HRS ]</span>
+        <span>•</span>
+        <span>[ GRAVEDAD: 1.10g ]</span>
+        <span>•</span>
+        <span>[ FRECUENCIA PSI: 14.3 kHz ]</span>
+      </div>
+    </section>
+
+    <!-- CUERPO PRINCIPAL: SIDEBAR + ÁREA DE CONTENIDO -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+      <!-- COLUMNA IZQUIERDA (SIDEBAR TÁCTICO) -->
+      <aside class="lg:col-span-4 space-y-4">
+
+        <!-- 1. NAVEGACIÓN -->
+        <nav class="term-box rounded p-3.5" aria-label="Navegación principal">
+          <div class="term-box-header pb-2 mb-2.5 text-xs font-bold flex items-center justify-between">
+            <span>┌─[ NAVEGACIÓN ]─┐</span>
+            <span class="text-[10px] text-[var(--text-muted)]">DIR // ROOT</span>
+          </div>
+          <ul class="space-y-1.5 text-xs sm:text-sm">
+            <li>
+              <button onclick="switchTab('inicio_hub')" data-tab="inicio_hub" class="nav-item active w-full text-left px-3 py-2.5 rounded btn-term cursor-pointer flex items-center justify-between">
+                <span>&gt; ~/inicio_hub</span>
+                <span class="text-[10px] text-[var(--text-muted)]">[LINKS]</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="switchTab('expedientes_novela')" data-tab="expedientes_novela" class="nav-item w-full text-left px-3 py-2.5 rounded btn-term cursor-pointer flex items-center justify-between">
+                <span>&gt; ~/expedientes_novela</span>
+                <span class="text-[10px] text-[var(--text-muted)]">[16 CAPS]</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="switchTab('codex_mundo')" data-tab="codex_mundo" class="nav-item w-full text-left px-3 py-2.5 rounded btn-term cursor-pointer flex items-center justify-between">
+                <span>&gt; ~/codex_mundo</span>
+                <span class="text-[10px] text-[var(--text-muted)]">[LORE]</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="switchTab('dossiers_facciones')" data-tab="dossiers_facciones" class="nav-item w-full text-left px-3 py-2.5 rounded btn-term cursor-pointer flex items-center justify-between">
+                <span>&gt; ~/dossiers_facciones</span>
+                <span class="text-[10px] text-[var(--text-muted)]">[GREF-1]</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="switchTab('bitacora_autor')" data-tab="bitacora_autor" class="nav-item w-full text-left px-3 py-2.5 rounded btn-term cursor-pointer flex items-center justify-between">
+                <span>&gt; ~/bitacora_autor</span>
+                <span class="text-[10px] text-[var(--text-muted)]">[FIRMAS]</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- 2. SYS_FETCH // GREF-1 -->
+        <section class="term-box rounded p-3.5 text-xs">
+          <div class="term-box-header pb-2 mb-2.5 font-bold flex items-center justify-between">
+            <span>┌─[ SYS_FETCH // GREF-1 ]─┐</span>
+            <span class="glow-primary">● ONLINE</span>
+          </div>
+          <div class="flex items-center gap-3 mb-3 bg-[var(--bg-deep)] p-2.5 rounded border border-[var(--border-main)]">
+            <pre class="text-[10px] leading-tight glow-primary select-none shrink-0">
+  /\_/\  
+ ( o.o ) 
+  &gt; ^ &lt;  
+ [6-B//MX]</pre>
+            <div class="space-y-0.5 text-[11px] min-w-0">
+              <div class="truncate"><span class="text-[var(--text-muted)]">OPERADOR:</span> <strong>MYR. MATEO RUIZ</strong></div>
+              <div class="truncate"><span class="text-[var(--text-muted)]">ARMA:</span> Zapadores / D.E.M.</div>
+              <div class="truncate"><span class="text-[var(--text-muted)]">UNIDAD:</span> GREF-1 (Vanguardia)</div>
+            </div>
+          </div>
+          <div class="space-y-1 text-[11px]">
+            <div class="flex justify-between gap-2">
+              <span class="text-[var(--text-muted)]">GRAVEDAD:</span>
+              <span>1.10g (10.787 m/s²)</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="text-[var(--text-muted)]">DÍA PLANETARIO:</span>
+              <span>26.0 HRS</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="text-[var(--text-muted)]">CAMPO PSI:</span>
+              <span>14.3 kHz / 432.1 MHz</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="text-[var(--text-muted)]">ESTADO:</span>
+              <span class="glow-accent font-bold">EN EMISIÓN</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. TELEMETRÍA ORBITAL // 2 LUNAS -->
+        <section class="term-box rounded p-3.5 text-xs">
+          <div class="term-box-header pb-2 mb-2.5 font-bold flex items-center justify-between">
+            <span>┌─[ TELEMETRÍA // 2 LUNAS ]─┐</span>
+            <span class="text-[10px] text-[var(--text-muted)]">RES 1:2</span>
+          </div>
+          <div class="bg-[var(--bg-deep)] border border-[var(--border-main)] rounded p-2.5 space-y-2">
+            <div class="flex justify-between text-[10px] text-[var(--text-muted)]">
+              <span>METZTLI ALFA (T=12.5d)</span>
+              <span>BETA (T=25.0d)</span>
+            </div>
+            <pre id="moon-ascii-display" class="text-[11px] leading-snug text-center glow-primary font-bold overflow-x-auto py-1">
+    (O) PLANETA SUPERTIERRA
+  [α] 285,000 km  ---&gt;  [β] 452,400 km
+            </pre>
+            <div class="border-t border-dashed border-[var(--border-main)] pt-2 space-y-1 text-[11px]">
+              <div class="flex justify-between">
+                <span class="text-[var(--text-muted)]">ÁNGULO DE FASE:</span>
+                <span id="moon-phase-angle" class="font-bold">000.0°</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[var(--text-muted)]">FACTOR MAREAL:</span>
+                <span id="moon-tidal-factor" class="glow-accent font-bold">1.45x</span>
+              </div>
+              <div class="text-[10px] text-center pt-1 text-[var(--text-muted)]" id="moon-status-label">
+                ESTADO: TRANSICIÓN ORBITAL ESTABLE
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. RADIO HF // NVIS 14.3 kHz -->
+        <section class="term-box rounded p-3.5 text-xs">
+          <div class="term-box-header pb-2 mb-2.5 font-bold flex items-center justify-between">
+            <span>┌─[ RADIO HF // NVIS ]─┐</span>
+            <span id="radio-status-badge" class="text-[10px] text-[var(--text-muted)]">STANDBY</span>
+          </div>
+          <div class="bg-[var(--bg-deep)] border border-[var(--border-main)] rounded p-2.5">
+            <div class="flex justify-between text-[10px] mb-2">
+              <span class="glow-primary">FREQ: 14.300 kHz</span>
+              <span class="text-[var(--text-muted)]">BANDA PSI / NVIS</span>
+            </div>
+            <!-- Visualizador de barras -->
+            <div id="radio-visualizer" class="h-8 flex items-end gap-1 mb-2.5 px-1" aria-hidden="true">
+              <div class="flex-1 bg-[var(--border-main)] h-1.5 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-2 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-1 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-2.5 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-1.5 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-2 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-1 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-2 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-1.5 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-2.5 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-1 rounded-t transition-all duration-100"></div>
+              <div class="flex-1 bg-[var(--border-main)] h-1.5 rounded-t transition-all duration-100"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="startRadio()" class="btn-term py-1.5 px-2 rounded text-[11px] font-bold cursor-pointer">
+                [&gt;] ESCUCHAR
+              </button>
+              <button onclick="stopRadio()" class="btn-term py-1.5 px-2 rounded text-[11px] font-bold cursor-pointer">
+                [||] SILENCIAR
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. BADGES // INDIE WEB -->
+        <section class="term-box rounded p-3.5 text-xs">
+          <div class="term-box-header pb-2 mb-2.5 font-bold flex items-center justify-between">
+            <span>┌─[ BADGES // 88x31 ]─┐</span>
+            <span class="text-[10px] text-[var(--text-muted)]">INDIE WEB</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="badge-88x31 rounded font-bold">SEDENA // 6-B</div>
+            <div class="badge-88x31 rounded font-bold">PATRÓN MANÁ</div>
+            <div class="badge-88x31 rounded font-bold">HECHO A MANO</div>
+            <div class="badge-88x31 rounded font-bold">MODO CRT</div>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- COLUMNA DERECHA (PANEL PRINCIPAL DINÁMICO) -->
+      <main class="lg:col-span-8 space-y-4">
+
+        <!-- =========================================================
+             TAB 1: ~/inicio_hub (RED DE TRANSMISIONES Y SINOPSIS)
+             ========================================================= -->
+        <div id="tab-inicio_hub" class="tab-panel space-y-4">
+
+          <!-- Tarjeta de Bienvenida / Informe Desclasificado -->
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // INFORME DESCLASIFICADO: DIARIO DE OPERACIONES (NO OFICIAL)
+              </h2>
+              <span class="px-2 py-0.5 rounded bg-[var(--accent-dim)] text-[var(--accent)] text-[10px] font-bold">
+                EXPEDIENTE #001
+              </span>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm leading-relaxed">
+              <p>
+                El <strong>5 de noviembre de 2026 a las 08:14 hrs</strong>, los Estados Unidos Mexicanos desaparecieron de la Tierra y fueron transferidos íntegramente —con su población, carreteras, presas, refinerías y cuarteles— a una <strong>Supertierra con gravedad de 1.10g</strong>, cielos vigilados por dos lunas y una atmósfera saturada de <strong>Maná (Campo Psi)</strong> que frió la microelectrónica moderna.
+              </p>
+              <p>
+                Desde el Campo Militar No. 6-B en Coahuila, el <strong>Mayor de Zapadores D.E.M. Mateo Ruiz Altamirano</strong> tiene un objetivo militar muy claro: sobrevivir a la fauna acorazada, evitar las intrigas de los reinos nativos, conseguir café de grano decente y comer en paz. El problema es que cada vez que improvisa una solución práctica de ingeniería o logística, el Alto Mando y los reinos vecinos lo confunden con un genio estratégico.
+              </p>
+
+              <blockquote class="border-l-2 border-[var(--primary)] pl-3 py-1.5 my-2 bg-[var(--bg-deep)] rounded-r italic text-[var(--text-muted)] text-xs">
+                "No pedí liderar la vanguardia hacia un continente desconocido. Solo quería que funcionara la cafetera de campaña y que nadie me disparara antes del almuerzo."
+                <span class="block not-italic font-bold text-[var(--primary)] mt-1">— Myr. Mateo Ruiz Altamirano, GREF-1</span>
+              </blockquote>
+            </div>
+          </article>
+
+          <!-- RED DE TRANSMISIONES (HUB DE ENLACES PARA BIO) -->
+          <article id="hub-enlaces" class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex items-center justify-between">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // RED DE TRANSMISIONES (HUB DE ENLACES)
+              </h2>
+              <span class="text-[10px] text-[var(--text-muted)]">BIO // MULTICANAL</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- YouTube -->
+              <a href="https://www.youtube.com/@chan00b96" target="_blank" rel="noopener noreferrer" class="btn-term rounded p-3.5 flex items-start gap-3 group">
+                <div class="w-10 h-10 rounded border border-[var(--border-main)] group-hover:border-[var(--primary)] bg-[var(--bg-deep)] flex items-center justify-center shrink-0 text-base font-bold glow-accent">
+                  ▶
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-sm glow-primary group-hover:underline">YouTube (@chan00b96)</div>
+                  <div class="text-[11px] text-[var(--text-muted)] mt-0.5">[VIDEOS LARGO FORMATO // EPISODIOS NARRADOS]</div>
+                </div>
+              </a>
+
+              <!-- TikTok / Reels -->
+              <a href="https://www.tiktok.com/@chan00b" target="_blank" rel="noopener noreferrer" class="btn-term rounded p-3.5 flex items-start gap-3 group">
+                <div class="w-10 h-10 rounded border border-[var(--border-main)] group-hover:border-[var(--primary)] bg-[var(--bg-deep)] flex items-center justify-center shrink-0 text-base font-bold glow-accent">
+                  ◈
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-sm glow-primary group-hover:underline">TikTok (@chan00b)</div>
+                  <div class="text-[11px] text-[var(--text-muted)] mt-0.5">[HISTORIAS CORTAS VERTICALES &amp; LORE]</div>
+                </div>
+              </a>
+
+              <!-- Wattpad -->
+              <a href="https://www.wattpad.com/story/419160911" target="_blank" rel="noopener noreferrer" class="btn-term rounded p-3.5 flex items-start gap-3 group">
+                <div class="w-10 h-10 rounded border border-[var(--border-main)] group-hover:border-[var(--primary)] bg-[var(--bg-deep)] flex items-center justify-center shrink-0 text-base font-bold glow-accent">
+                  W
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-sm glow-primary group-hover:underline">Wattpad</div>
+                  <div class="text-[11px] text-[var(--text-muted)] mt-0.5">[LEER NOVELA COMPLETA — 16 CAPÍTULOS]</div>
+                </div>
+              </a>
+
+              <!-- Inkitt -->
+              <a href="https://www.inkitt.com/es/stories/1948294" target="_blank" rel="noopener noreferrer" class="btn-term rounded p-3.5 flex items-start gap-3 group">
+                <div class="w-10 h-10 rounded border border-[var(--border-main)] group-hover:border-[var(--primary)] bg-[var(--bg-deep)] flex items-center justify-center shrink-0 text-base font-bold glow-accent">
+                  IK
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-sm glow-primary group-hover:underline">Inkitt</div>
+                  <div class="text-[11px] text-[var(--text-muted)] mt-0.5">[ESPEJO DE LECTURA ALTERNATIVO]</div>
+                </div>
+              </a>
+            </div>
+          </article>
+
+          <!-- Últimas Transmisiones / Accesos rápidos -->
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex items-center justify-between">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // ÚLTIMAS TRANSMISIONES &amp; CÁPSULAS DE LORE
+              </h2>
+              <span class="text-[10px] text-[var(--text-muted)]">FEED // ACTIVO</span>
+            </div>
+            <div class="space-y-2.5 text-xs">
+              <div class="p-3 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span class="text-[var(--accent)] font-bold">[CÁPSULA 01]</span>
+                  <span class="ml-1.5 font-bold">¿Por qué fallan los autos modernos y sobreviven los motores diésel mecánicos?</span>
+                  <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Informe técnico sobre el acoplamiento del Campo Psi (14.3 kHz) en microchips menores a 10 nanómetros.</p>
+                </div>
+                <a href="https://www.tiktok.com/@chan00b" target="_blank" rel="noopener noreferrer" class="btn-term px-2.5 py-1.5 rounded text-[11px] font-bold shrink-0">
+                  [VER EN TIKTOK &gt;]
+                </a>
+              </div>
+
+              <div class="p-3 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span class="text-[var(--primary)] font-bold">[ARCHIVO DE AUDIO]</span>
+                  <span class="ml-1.5 font-bold">Capítulo 1: El sismo vertical y el mapa roto (Lectura / Crónica)</span>
+                  <p class="text-[11px] text-[var(--text-muted)] mt-0.5">El amanecer en el Campo Militar 6-B cuando los satélites GPS dejaron de responder.</p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <button onclick="openReader()" class="btn-accent px-2.5 py-1.5 rounded text-[11px] font-bold cursor-pointer">
+                    [LEER FRAGMENTO]
+                  </button>
+                  <a href="https://www.youtube.com/@chan00b96" target="_blank" rel="noopener noreferrer" class="btn-term px-2.5 py-1.5 rounded text-[11px] font-bold">
+                    [YOUTUBE &gt;]
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- =========================================================
+             TAB 2: ~/expedientes_novela (ÍNDICE DE CAPÍTULOS + LECTOR)
+             ========================================================= -->
+        <div id="tab-expedientes_novela" class="tab-panel hidden space-y-4">
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                  // ARCHIVO DE CAPÍTULOS — EL BASTIÓN SILENCIOSO
+                </h2>
+                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">
+                  16 Capítulos + 1 Interludio desclasificado. Lee el arranque aquí o continúa la obra completa en Wattpad e Inkitt.
+                </p>
+              </div>
+              <div class="flex gap-1.5 text-[11px]">
+                <button onclick="filterChapters('all')" data-filter="all" class="chap-filter-btn btn-accent px-2.5 py-1 rounded font-bold cursor-pointer">TODOS</button>
+                <button onclick="filterChapters('chapter')" data-filter="chapter" class="chap-filter-btn btn-term px-2.5 py-1 rounded font-bold cursor-pointer">ARCOS</button>
+                <button onclick="filterChapters('interlude')" data-filter="interlude" class="chap-filter-btn btn-term px-2.5 py-1 rounded font-bold cursor-pointer">INTERLUDIOS</button>
+              </div>
+            </div>
+
+            <div id="chapters-list" class="space-y-2"></div>
+          </article>
+        </div>
+
+        <!-- =========================================================
+             TAB 3: ~/codex_mundo (REGLAS DEL MUNDO CON BUSCADOR)
+             ========================================================= -->
+        <div id="tab-codex_mundo" class="tab-panel hidden space-y-4">
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                  // MANUAL DE AXIOMAS DEL MUNDO (CÓDICE TÉCNICO)
+                </h2>
+                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">
+                  Documentación de física planetaria, Campo Psi, niveles de núcleos, metalurgia y economía Patrón Maná.
+                </p>
+              </div>
+            </div>
+
+            <!-- Buscador en vivo -->
+            <div class="mb-4">
+              <label for="codex-search" class="block text-[11px] text-[var(--text-muted)] mb-1">
+                FILTRAR AXIOMAS POR PALABRA CLAVE:
+              </label>
+              <input
+                id="codex-search"
+                type="text"
+                oninput="renderCodex()"
+                placeholder="Ej: gravedad, 14.3, núcleos, quetzal, g3, nixtamal, lunas..."
+                class="w-full bg-[var(--bg-deep)] border border-[var(--border-main)] focus:border-[var(--primary)] focus:outline-none rounded px-3 py-2 text-xs text-[var(--text-main)]"
+              />
+            </div>
+
+            <div id="codex-results" class="space-y-3"></div>
+          </article>
+        </div>
+
+        <!-- =========================================================
+             TAB 4: ~/dossiers_facciones (GREF-1 Y VAELORIA)
+             ========================================================= -->
+        <div id="tab-dossiers_facciones" class="tab-panel hidden space-y-4">
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex items-center justify-between">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // EXPEDIENTES DE PERSONAL — GRUPO DE RECONOCIMIENTO (GREF-1)
+              </h2>
+              <span class="text-[10px] text-[var(--text-muted)]">SEDENA // NUEVO ORDEN</span>
+            </div>
+
+            <div id="gref-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+          </article>
+
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex items-center justify-between">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // INTELIGENCIA EXTERNA — FACCIONES DE VAELORIA Y CANALIZADORES
+              </h2>
+              <span class="text-[10px] text-[var(--text-muted)]">RECON // CONTINENTE</span>
+            </div>
+
+            <div id="factions-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+          </article>
+        </div>
+
+        <!-- =========================================================
+             TAB 5: ~/bitacora_autor (NOTAS DE PRODUCCIÓN + GUESTBOOK)
+             ========================================================= -->
+        <div id="tab-bitacora_autor" class="tab-panel hidden space-y-4">
+
+          <!-- Bitácora del Autor -->
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex items-center justify-between">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // BITÁCORA DEL AUTOR — PRODUCCIÓN MULTIMEDIA
+              </h2>
+              <span class="text-[10px] text-[var(--text-muted)]">LOG // CHAN00B</span>
+            </div>
+            <div class="space-y-3 text-xs sm:text-sm leading-relaxed">
+              <div class="p-3 rounded bg-[var(--bg-deep)] border border-[var(--border-main)]">
+                <div class="text-[11px] glow-accent font-bold mb-1">[ENTRADA 2026.11.23 — EXPANSIÓN A VIDEO Y LORE VERTICAL]</div>
+                <p class="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
+                  Arrancamos la preparación de los primeros guiones para YouTube y videos cortos verticales. La idea es que cada cápsula funcione como un informe desclasificado del universo: desde cómo falla un motor de inyección electrónica bajo el Campo Psi hasta las pruebas de balística con la nueva munición en el Campo 6-B.
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2 text-[11px]">
+                  <a href="https://www.youtube.com/@chan00b96" target="_blank" rel="noopener noreferrer" class="btn-term px-2.5 py-1 rounded font-bold">[▶ CANAL DE YOUTUBE]</a>
+                  <a href="https://www.tiktok.com/@chan00b" target="_blank" rel="noopener noreferrer" class="btn-term px-2.5 py-1 rounded font-bold">[◈ PERFIL DE TIKTOK]</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Libro de Visitas Clásico -->
+          <article class="term-box rounded p-4 sm:p-5">
+            <div class="term-box-header pb-2 mb-3 flex items-center justify-between">
+              <h2 class="text-sm sm:text-base font-bold tracking-wide">
+                // LIBRO DE VISITAS (GUESTBOOK DE CAMPO)
+              </h2>
+              <span class="text-[10px] text-[var(--text-muted)]">FRECUENCIA ABIERTA</span>
+            </div>
+
+            <form onsubmit="submitGuestbook(event)" class="bg-[var(--bg-deep)] border border-[var(--border-main)] rounded p-3.5 mb-4 space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="gb-name" class="block text-[11px] text-[var(--text-muted)] mb-1">NOMBRE / INDICATIVO (*):</label>
+                  <input id="gb-name" type="text" required maxlength="36" placeholder="Ej: Cabo_Zapador_07" class="w-full bg-[var(--bg-panel)] border border-[var(--border-main)] focus:border-[var(--primary)] focus:outline-none rounded px-2.5 py-1.5 text-xs text-[var(--text-main)]" />
+                </div>
+                <div>
+                  <label for="gb-origin" class="block text-[11px] text-[var(--text-muted)] mb-1">ORIGEN / NODO (OPCIONAL):</label>
+                  <input id="gb-origin" type="text" maxlength="40" placeholder="CDMX / Aurelia" class="w-full bg-[var(--bg-panel)] border border-[var(--border-main)] focus:border-[var(--primary)] focus:outline-none rounded px-2.5 py-1.5 text-xs text-[var(--text-main)]" />
+                </div>
+              </div>
+
+              <div>
+                <label for="gb-msg" class="block text-[11px] text-[var(--text-muted)] mb-1">TRANSMISIÓN / COMENTARIO (*):</label>
+                <textarea id="gb-msg" rows="2" required maxlength="280" placeholder="Deja tu reporte, teoría sobre la novela o saludo desde tu sector..." class="w-full bg-[var(--bg-panel)] border border-[var(--border-main)] focus:border-[var(--primary)] focus:outline-none rounded px-2.5 py-1.5 text-xs text-[var(--text-main)]"></textarea>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span id="gb-feedback" class="text-[11px] glow-primary"></span>
+                <button type="submit" class="btn-accent px-3.5 py-1.5 rounded text-xs font-bold cursor-pointer">
+                  [TRANSMITIR FIRMA]
+                </button>
+              </div>
+            </form>
+
+            <div id="guestbook-list" class="space-y-2.5"></div>
+          </article>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- PIE DE PÁGINA RETRO -->
+    <footer class="term-box rounded px-4 py-3 text-center text-[11px] text-[var(--text-muted)] space-y-1">
+      <div>
+        EL BASTIÓN SILENCIOSO // ARCHIVO TÁCTICO INDEPENDIENTE • OPTIMIZADO PARA TERMINALES PORTÁTILES Y CRT 800x600
+      </div>
+      <div>
+        <span class="glow-primary">FIN DE TRANSMISIÓN</span> <span class="cursor-blink glow-primary">█</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- MODAL LECTOR INTEGRADO (CAPÍTULO 1) -->
+  <div id="reader-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-xs p-3 sm:p-6 flex items-center justify-center">
+    <div class="term-box rounded w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      <!-- Cabecera Modal -->
+      <div class="px-4 py-3 border-b border-[var(--border-main)] bg-[var(--bg-deep)] flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="text-[10px] glow-accent font-bold">ARCHIVO DESCLASIFICADO // CAPÍTULO 01</div>
+          <h3 class="text-sm sm:text-base font-bold glow-primary truncate">El sismo vertical y el mapa roto</h3>
+        </div>
+        <button onclick="closeReader()" class="btn-term px-3 py-1 rounded text-xs font-bold cursor-pointer shrink-0">
+          [X] CERRAR
+        </button>
+      </div>
+
+      <!-- Cuerpo de lectura -->
+      <div class="p-4 sm:p-6 overflow-y-auto novel-prose text-xs sm:text-sm space-y-4 text-[var(--text-main)]">
+        <p class="text-[11px] text-[var(--text-muted)] font-mono border-b border-dashed border-[var(--border-main)] pb-2">
+          CAMPO MILITAR No. 6-B, COAHUILA — 05 DE NOVIEMBRE DE 2026, 08:14 HRS.
+        </p>
+        <p>
+          Lo primero que notó el Mayor Mateo Ruiz Altamirano no fue el silencio de los radios, ni el cielo de un azul demasiado denso sobre las sierras de Coahuila, sino que su taza de peltre con café de olla pesaba exactamente un diez por ciento más de lo que debía pesar a las ocho de la mañana.
+        </p>
+        <p>
+          No hubo sacudida horizontal. No hubo ondas P ni ondas S rodando desde la costa del Pacífico. Fue un golpe seco, vertical, como si alguien hubiera levantado el tablero completo de la República Mexicana tres centímetros en el aire y lo hubiera dejado caer sobre una mesa distinta.
+        </p>
+        <p>
+          —¡Mi Mayor! —gritó el Cabo Silverio Bohórquez desde el umbral de la barraca de transmisiones, sosteniendo un receptor táctico Harris que emitía un zumbido grave, continuo, parecido al ronroneo de un transformador a punto de reventar—. Se cayó el enlace satelital. Todo. GPS, telefonía, banda Ku... y la brújula del tablero apunta hacia donde debería estar el Golfo.
+        </p>
+        <p>
+          Mateo dio un sorbo lento a su café antes de que se enfriara. Llevaba doce años en el Cuerpo de Zapadores aprendiendo que, cuando todo el mundo entra en pánico al mismo tiempo, la única ventaja táctica real es tener el estómago lleno y la cabeza fría. Afuera, sobre la línea de cumbres donde terminaba el perímetro conocido del desierto, comenzaba una muralla de árboles colosales que no figuraban en ningún mapa del INEGI.
+        </p>
+      </div>
+
+      <!-- Pie Modal con enlaces externos -->
+      <div class="px-4 py-3 border-t border-[var(--border-main)] bg-[var(--bg-deep)] flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span class="text-[var(--text-muted)]">FIN DEL FRAGMENTO DESCLASIFICADO</span>
+        <div class="flex flex-wrap gap-2">
+          <a href="https://www.wattpad.com/story/419160911" target="_blank" rel="noopener noreferrer" class="btn-accent px-3 py-1.5 rounded font-bold cursor-pointer">
+            CONTINUAR EN WATTPAD &gt;
+          </a>
+          <a href="https://www.inkitt.com/es/stories/1948294" target="_blank" rel="noopener noreferrer" class="btn-term px-3 py-1.5 rounded font-bold cursor-pointer">
+            LEER EN INKITT &gt;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT DE INTERACTIVIDAD -->
+  <script>
+    // =========================================================================
+    // 1. GESTIÓN DE TEMAS Y OVERLAY CRT
+    // =========================================================================
+    function setTheme(themeName) {
+      document.documentElement.setAttribute('data-theme', themeName);
+      try {
+        localStorage.setItem('bastion_theme', themeName);
+      } catch (e) {}
+    }
+
+    function toggleCRT() {
+      const body = document.body;
+      const btn = document.getElementById('btn-crt');
+      body.classList.toggle('crt-off');
+      const isOff = body.classList.contains('crt-off');
+      btn.textContent = isOff ? 'CRT: OFF' : 'CRT: ON';
+    }
+
+    // Restaurar tema guardado si existe
+    (function initTheme() {
+      try {
+        const savedTheme = localStorage.getItem('bastion_theme');
+        if (savedTheme && ['green', 'amber', 'synth'].includes(savedTheme)) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+      } catch (e) {}
+    })();
+
+    // =========================================================================
+    // 2. NAVEGACIÓN ENTRE PESTAÑAS
+    // =========================================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      const target = document.getElementById('tab-' + tabId);
+      if (target) {
+        target.classList.remove('hidden');
+      }
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // =========================================================================
+    // 3. TELEMETRÍA ORBITAL EN VIVO (2 LUNAS EN RESONANCIA 1:2)
+    // =========================================================================
+    let moonPhaseDeg = 32;
+
+    function updateMoonTelemetry() {
+      moonPhaseDeg = (moonPhaseDeg + 1.8) % 360;
+      const rad = (moonPhaseDeg * Math.PI) / 180;
+      // Resonancia 1:2 entre Metztli Alfa (12.5d) y Metztli Beta (25.0d)
+      const alignment = Math.cos(rad);
+      const tidalFactor = (1.59 + 0.71 * alignment).toFixed(2);
+
+      const angleEl = document.getElementById('moon-phase-angle');
+      const tidalEl = document.getElementById('moon-tidal-factor');
+      const statusEl = document.getElementById('moon-status-label');
+      const asciiEl = document.getElementById('moon-ascii-display');
+
+      if (angleEl) angleEl.textContent = moonPhaseDeg.toFixed(1).padStart(5, '0') + '°';
+      if (tidalEl) tidalEl.textContent = tidalFactor + 'x';
+
+      if (statusEl) {
+        if (alignment > 0.75) {
+          statusEl.textContent = 'ALERTA: SIZIGIA DOBLE (MAREA ALTA PSI)';
+          statusEl.style.color = 'var(--accent)';
+        } else if (alignment < -0.75) {
+          statusEl.textContent = 'ESTADO: CUADRATURA CRUZADA (MÍNIMA)';
+          statusEl.style.color = 'var(--primary)';
+        } else {
+          statusEl.textContent = 'ESTADO: RESONANCIA 1:2 EN CURSO';
+          statusEl.style.color = 'var(--text-muted)';
+        }
+      }
+
+      if (asciiEl) {
+        const posA = Math.round(6 + 5 * Math.cos(rad));
+        const posB = Math.round(14 + 6 * Math.cos(rad * 0.5));
+        const track = Array(24).fill('·');
+        track[11] = '⊕';
+        track[Math.max(0, Math.min(23, posA))] = 'α';
+        track[Math.max(0, Math.min(23, posB))] = 'β';
+        asciiEl.textContent =
+          `[${track.join('')}]\n` +
+          `α:285,000km  ⊕:SUPERTIERRA  β:452,400km`;
+      }
+    }
+
+    setInterval(updateMoonTelemetry, 1200);
+    updateMoonTelemetry();
+
+    // =========================================================================
+    // 4. RADIO HF / NVIS CON WEB AUDIO API (ESTÁTICA REAL OPCIONAL)
+    // =========================================================================
+    let audioCtx = null;
+    let noiseNode = null;
+    let gainNode = null;
+    let radioVizInterval = null;
+
+    function startRadio() {
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        if (noiseNode) return;
+
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = noiseBuffer;
+        noiseNode.loop = true;
+
+        const bandpass = audioCtx.createBiquadFilter();
+        bandpass.type = 'bandpass';
+        bandpass.frequency.value = 1150;
+        bandpass.Q.value = 2.4;
+
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0.035;
+
+        noiseNode.connect(bandpass);
+        bandpass.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        noiseNode.start(0);
+
+        const badge = document.getElementById('radio-status-badge');
+        if (badge) {
+          badge.textContent = 'RX ACTIVO';
+          badge.classList.add('glow-primary');
+        }
+
+        const bars = document.querySelectorAll('#radio-visualizer div');
+        radioVizInterval = setInterval(() => {
+          bars.forEach(bar => {
+            const h = Math.floor(Math.random() * 26) + 4;
+            bar.style.height = h + 'px';
+            bar.style.backgroundColor = 'var(--primary)';
+          });
+        }, 120);
+      } catch (e) {}
+    }
+
+    function stopRadio() {
+      try {
+        if (noiseNode) {
+          noiseNode.stop();
+          noiseNode.disconnect();
+          noiseNode = null;
+        }
+        if (radioVizInterval) {
+          clearInterval(radioVizInterval);
+          radioVizInterval = null;
+        }
+        const badge = document.getElementById('radio-status-badge');
+        if (badge) {
+          badge.textContent = 'STANDBY';
+          badge.classList.remove('glow-primary');
+        }
+        const bars = document.querySelectorAll('#radio-visualizer div');
+        bars.forEach(bar => {
+          bar.style.height = '6px';
+          bar.style.backgroundColor = 'var(--border-main)';
+        });
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // 5. CAPÍTULOS Y LECTOR MODAL
+    // =========================================================================
+    const CHAPTERS = [
+      { num: 'CAP. 01', type: 'chapter', title: 'El sismo vertical y el mapa roto', tag: 'ARCO I // TRANSFERENCIA', status: 'PUBLICADO', hasExcerpt: true },
+      { num: 'CAP. 02', type: 'chapter', title: 'Cambios físicos y el pacto del Cacao', tag: 'ARCO I // ADAPTACIÓN', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 03', type: 'chapter', title: 'Preparativos para la Expedición', tag: 'ARCO I // LOGÍSTICA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 04', type: 'chapter', title: 'Las primeras muestras de vida', tag: 'ARCO I // RECONOCIMIENTO', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 05', type: 'chapter', title: 'Ciudadelas extrañas y fauna a prueba de plomo', tag: 'ARCO I // CONTACTO', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'INT. I', type: 'interlude', title: 'Interludio I: La voz en la estática', tag: 'TRANSMISIÓN ESPECIAL', status: 'DESCLASIFICADO', hasExcerpt: false },
+      { num: 'CAP. 06', type: 'chapter', title: 'La Misteriosa Nativa', tag: 'ARCO II // VAELORIA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 07', type: 'chapter', title: 'El Informe', tag: 'ARCO II // ALTO MANDO', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 08', type: 'chapter', title: 'La nueva norma', tag: 'ARCO II // DOCTRINA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 09', type: 'chapter', title: 'El precio de la luz', tag: 'ARCO II // ENERGÍA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 10', type: 'chapter', title: 'Probando la nueva munición', tag: 'ARCO II // BALÍSTICA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 11', type: 'chapter', title: 'Sombras en el bosque y susurros en la corte', tag: 'ARCO III // INTRIGAS', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 12', type: 'chapter', title: 'El pacto de silencio y los mercaderes de Aurelia', tag: 'ARCO III // COMERCIO', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 13', type: 'chapter', title: 'Comienzan las negociaciones', tag: 'ARCO III // DIPLOMACIA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 14', type: 'chapter', title: 'Línea de contacto', tag: 'ARCO III // FRONTERA', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 15', type: 'chapter', title: 'El peso del comercio', tag: 'ARCO III // PATRÓN MANÁ', status: 'PUBLICADO', hasExcerpt: false },
+      { num: 'CAP. 16', type: 'chapter', title: 'La prueba del fuego', tag: 'ARCO III // OPERACIONES', status: 'PUBLICADO', hasExcerpt: false }
+    ];
+
+    let currentChapterFilter = 'all';
+
+    function filterChapters(type) {
+      currentChapterFilter = type;
+      document.querySelectorAll('.chap-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-filter') === type) {
+          btn.classList.remove('btn-term');
+          btn.classList.add('btn-accent');
+        } else {
+          btn.classList.remove('btn-accent');
+          btn.classList.add('btn-term');
+        }
+      });
+      renderChapters();
+    }
+
+    function renderChapters() {
+      const container = document.getElementById('chapters-list');
+      if (!container) return;
+      const filtered = CHAPTERS.filter(c => currentChapterFilter === 'all' || c.type === currentChapterFilter);
+      container.innerHTML = filtered.map(c => `
+        <div class="bg-[var(--bg-deep)] border border-[var(--border-main)] hover:border-[var(--primary)] transition rounded p-3 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${c.type === 'interlude' ? 'bg-[var(--accent-dim)] text-[var(--accent)]' : 'bg-[var(--primary-glow)] text-[var(--primary)]'}">
+              ${c.num}
+            </span>
+            <div class="min-w-0">
+              <div class="text-xs sm:text-sm font-semibold text-[var(--text-main)] truncate">${c.title}</div>
+              <div class="text-[10px] text-[var(--text-muted)]">${c.tag} // ESTADO: ${c.status}</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 ml-auto">
+            ${c.hasExcerpt
+              ? `<button onclick="openReader()" class="btn-accent px-2.5 py-1 rounded text-[11px] font-bold cursor-pointer">[LEER FRAGMENTO AQUÍ]</button>`
+              : ''
+            }
+            <a href="https://www.wattpad.com/story/419160911" target="_blank" rel="noopener noreferrer" class="btn-term px-2.5 py-1 rounded text-[11px] cursor-pointer">[WATTPAD &gt;]</a>
+            <a href="https://www.inkitt.com/es/stories/1948294" target="_blank" rel="noopener noreferrer" class="btn-term px-2.5 py-1 rounded text-[11px] cursor-pointer">[INKITT &gt;]</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openReader() {
+      const modal = document.getElementById('reader-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeReader() {
+      const modal = document.getElementById('reader-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 6. CÓDICE DE REGLAS DEL MUNDO (BUSCADOR EN VIVO)
+    // =========================================================================
+    const CODEX_ENTRIES = [
+      {
+        module: 'astrofisica',
+        title: 'Astrofísica Planetaria y Gravedad (1.10g)',
+        tag: 'PLANETOLOGÍA',
+        keywords: 'astrofisica gravedad 1.10g radios terrestres dia 26 horas magnetosfera gauss resonancia lunar metztli alfa beta mareas',
+        html: `
+          <ul class="space-y-1.5 text-xs text-[var(--text-muted)]">
+            <li><strong class="text-[var(--text-main)]">Gravedad Superficial:</strong> 1.10g (10.787 m/s²) sobre una Supertierra rocosa de 1.25 radios terrestres. Exige acondicionamiento físico gradual y recalibración de tablas balísticas.</li>
+            <li><strong class="text-[var(--text-main)]">Ciclo Rotacional:</strong> Día planetario de <strong>26.0 horas</strong> estándar, generando desfase circadiano en las primeras semanas tras el Evento Zero.</li>
+            <li><strong class="text-[var(--text-main)]">Magnetosfera Reforzada:</strong> 1.35 Gauss con núcleo de hierro-níquel activo que protege la atmósfera densa.</li>
+            <li><strong class="text-[var(--text-main)]">Sistema Binario Lunar (Resonancia 1:2):</strong> <em>Metztli Alfa</em> (285,000 km; periodo 12.5 días) y <em>Metztli Beta</em> (452,400 km; periodo 25.0 días). Sus alineaciones provocan ciclos de marea energética y biológica.</li>
+          </ul>
+        `
+      },
+      {
+        module: 'fisica_mana',
+        title: 'Física del Maná / Campo Psi y Resiliencia Análoga',
+        tag: 'ELECTROMAGNETISMO',
+        keywords: 'fisica mana campo psi exciton bario quiral 14.3 khz 432.1 mhz cerebral chips microelectronica talacha punk diesel analogico',
+        html: `
+          <ul class="space-y-1.5 text-xs text-[var(--text-muted)]">
+            <li><strong class="text-[var(--text-main)]">Naturaleza del Maná:</strong> Cuasipartícula tipo <em>Excitón Bario-Quiral</em> acoplada al campo geomagnético planetario.</li>
+            <li><strong class="text-[var(--text-main)]">Frecuencias de Resonancia:</strong> Frecuencia fundamental de <strong>14.3 kHz</strong> (banda VLF/NVIS) y armónico superior de <strong>432.1 MHz</strong>. Acopla con ritmos cerebrales beta-bajos (14.3 Hz) en canalizadores humanos y fauna nativa.</li>
+            <li><strong class="text-[var(--text-main)]">Colapso de Microelectrónica (&lt;10 nm):</strong> El flujo Psi induce corrientes parásitas y efecto túnel en transistores modernos de alta densidad, inutilizando smartphones, satélites y ECUs automotrices recientes.</li>
+            <li><strong class="text-[var(--text-main)]">Doctrina Talacha-Punk:</strong> Sobreviven y dominan los motores diésel mecánicos, radios de bulbos o transistores gruesos, maquinaria ferroviaria y sistemas electromecánicos analógicos.</li>
+          </ul>
+        `
+      },
+      {
+        module: 'materiales',
+        title: 'Escala de los 5 Niveles de Núcleos de Maná',
+        tag: 'ENERGÉTICA',
+        keywords: 'nucleos niveles rojo oxido naranja ambar verde esmeralda azul cobalto zafiro blanco radiante violeta bestias miticas legendarias tesoro nacional escudos ciudades fortalezas propulsion pesada',
+        html: `
+          <div class="space-y-2 text-xs">
+            <div class="flex items-start gap-3 p-2.5 rounded bg-[var(--bg-panel)] border border-[#b91c1c]/60">
+              <span class="w-4 h-4 rounded-full shrink-0 mt-0.5" style="background:#b91c1c; box-shadow: 0 0 8px #b91c1c;"></span>
+              <div><strong style="color:#f87171;">Nivel 1 — Rojo Óxido / Infrarrojo:</strong> Fauna pequeña y jaurías ferales urbanas. <strong>Uso:</strong> Combustión térmica lenta doméstica, combustible híbrido básico, acuñación del Patrón Maná y catalizador agrícola inicial.</div>
+            </div>
+            <div class="flex items-start gap-3 p-2.5 rounded bg-[var(--bg-panel)] border border-[#d97706]/60">
+              <span class="w-4 h-4 rounded-full shrink-0 mt-0.5" style="background:#f59e0b; box-shadow: 0 0 8px #f59e0b;"></span>
+              <div><strong style="color:#fbbf24;">Nivel 2 — Naranja / Ámbar:</strong> Herbívoros medianos y depredadores de frontera forestal. <strong>Uso:</strong> Iluminación urbana (Esferas de Maná comunes), generadores termo-mágicos básicos, calderas ferroviarias híbridas y curtido alquímico.</div>
+            </div>
+            <div class="flex items-start gap-3 p-2.5 rounded bg-[var(--bg-panel)] border border-[#10b981]/60">
+              <span class="w-4 h-4 rounded-full shrink-0 mt-0.5" style="background:#10b981; box-shadow: 0 0 8px #10b981;"></span>
+              <div><strong style="color:#34d399;">Nivel 3 — Verde Esmeralda:</strong> Depredadores acorazados y rezagados de la Gran Marea. <strong>Uso:</strong> Transductores de estado sólido permanentes, propulsión de vehículos pesados (como la U.M.A.-04) y alta disipación cinética/energética.</div>
+            </div>
+            <div class="flex items-start gap-3 p-2.5 rounded bg-[var(--bg-panel)] border border-[#2563eb]/60">
+              <span class="w-4 h-4 rounded-full shrink-0 mt-0.5" style="background:#3b82f6; box-shadow: 0 0 8px #3b82f6;"></span>
+              <div><strong style="color:#60a5fa;">Nivel 4 — Azul Cobalto / Zafiro:</strong> Amenazas regionales. <strong>Uso:</strong> Propulsión pesada y escudos de ciudades y fortalezas; pueden darle energía a una ciudad pequeña.</div>
+            </div>
+            <div class="flex items-start gap-3 p-2.5 rounded bg-[var(--bg-panel)] border border-[#c084fc]/70">
+              <span class="w-4 h-4 rounded-full shrink-0 mt-0.5" style="background:linear-gradient(135deg,#ffffff,#a855f7); box-shadow: 0 0 10px #c084fc;"></span>
+              <div><strong style="color:#e9d5ff;">Nivel 5 — Blanco Radiante / Violeta:</strong> Bestias míticas y legendarias. <strong>Uso:</strong> Uso de núcleos nivel tesoro nacional (requiere blindaje de plata u obsidiana férrica M-02).</div>
+            </div>
+          </div>
+        `
+      },
+      {
+        module: 'metalurgia',
+        title: 'Aleaciones Nativas y Balística Militar (DGIM)',
+        tag: 'ARMAMENTO',
+        keywords: 'aleaciones m-01 quetzal m-02 ocelote fusil hk g3 7.62 fx-05 xiuhcoatl 5.56 municion dgim obsidiana ferrica',
+        html: `
+          <ul class="space-y-1.5 text-xs text-[var(--text-muted)]">
+            <li><strong class="text-[var(--text-main)]">Aleación M-01 (Quetzal — 2.35 g/cm³):</strong> Metal ultraligero y superconductor de Maná usado en báculos, runas de conducción y armaduras ceremoniales/ofensivas de alto rango.</li>
+            <li><strong class="text-[var(--text-main)]">Aleación M-02 (Ocelote / Obsidiana Férrica — 13.80 g/cm³):</strong> Sumidero opaco de Maná de altísima densidad. Disipa descargas mágicas y sirve como blindaje contenedor para núcleos inestables.</li>
+            <li><strong class="text-[var(--text-main)]">Doctrina de Fuego (7.62 mm y 5.56 mm):</strong> Ante fauna con corazas reforzadas por Maná, la SEDENA reactivó masivamente el fusil <strong>HK G3 (7.62×51 mm)</strong> junto al <strong>FX-05 Xiuhcóatl (5.56×45 mm)</strong>, desarrollando proyectiles perforantes con núcleo tratado en la Dirección General de Industria Militar (DGIM).</li>
+          </ul>
+        `
+      },
+      {
+        module: 'economia',
+        title: 'Manasíntesis, Nixtamalización y Economía Patrón Maná',
+        tag: 'LOGÍSTICA CIVIL',
+        keywords: 'manasintesis agricultura polvo nucleo nixtamalizacion economia patron mana moneda fundible ciudadelas campesinas',
+        html: `
+          <ul class="space-y-1.5 text-xs text-[var(--text-muted)]">
+            <li><strong class="text-[var(--text-main)]">Manasíntesis Agrícola:</strong> El polvo residual de núcleos Nivel 1 actúa como catalizador piezo-iónico radicular, acelerando cosechas de maíz, frijol y cacao bajo la gravedad de 1.10g.</li>
+            <li><strong class="text-[var(--text-main)]">Nixtamalización Bio-Activa:</strong> La caliza local rica en trazas minerales potencia la biodisponibilidad energética de los cultivos nativos y mexicanos.</li>
+            <li><strong class="text-[var(--text-main)]">Patrón Maná y Ciudadelas Campesinas:</strong> Sistema monetario respaldado por energía medible (moneda fundible anti-inflación) que articula el comercio entre las Ciudadelas Campesinas fortificadas de México y los gremios mercantiles de Vaeloria.</li>
+          </ul>
+        `
+      }
+    ];
+
+    function renderCodex() {
+      const container = document.getElementById('codex-results');
+      const input = document.getElementById('codex-search');
+      if (!container) return;
+
+      const query = (input ? input.value : '').trim().toLowerCase();
+      const filtered = CODEX_ENTRIES.filter(entry =>
+        !query ||
+        entry.title.toLowerCase().includes(query) ||
+        entry.keywords.toLowerCase().includes(query) ||
+        entry.tag.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-4 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] text-xs text-[var(--text-muted)]">Sin registros coincidentes en el Códice para "${query}".</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(entry => `
+        <div class="p-3.5 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-[var(--border-main)] pb-1.5">
+            <h3 class="text-xs sm:text-sm font-bold glow-primary">${entry.title}</h3>
+            <span class="px-2 py-0.5 rounded bg-[var(--primary-glow)] text-[var(--primary)] text-[10px] font-bold">${entry.tag}</span>
+          </div>
+          ${entry.html}
+        </div>
+      `).join('');
+    }
+
+    // =========================================================================
+    // 7. DOSSIERS DE PERSONAL Y FACCIONES
+    // =========================================================================
+    const GREF_PERSONNEL = [
+      {
+        name: 'Mayor D.E.M. Mateo Ruiz Altamirano',
+        role: 'Comandante de Vanguardia (GREF-1) // Zapadores',
+        note: 'Pragmático, experto en ingeniería militar y logística. Su único plan maestro es reducir bajas, asegurar café decente y comer sin interrupciones, aunque todos interpreten su cautela como brillantez táctica.'
+      },
+      {
+        name: 'Cabo Silverio Bohórquez Pinacho',
+        role: 'Especialista en Transmisiones y Guerra Electrónica',
+        note: 'Oaxaqueño, ingenioso con cautín y alambre de cobre. Encargado de adaptar radios HF/NVIS y descifrar las anomalías acústicas en 14.3 kHz.'
+      },
+      {
+        name: 'Soldado 1/a Jacinto Carrizosa Noyola',
+        role: 'Tirador Designado y Explorador de Avanzada',
+        note: 'Observador silencioso con puntería quirúrgica con el HK G3 7.62 mm. Primero en detectar patrones de emboscada en la selva fronteriza.'
+      },
+      {
+        name: 'Lic. Remedios Pineda Dorantes',
+        role: 'Enlace Diplomático, Lingüística y Comercio',
+        note: 'Negociadora implacable capaz de traducir tanto dialectos de Vaeloria como contratos mercantiles bajo el Patrón Maná.'
+      },
+      {
+        name: 'General Gilberto Vargas Leyva',
+        role: 'Alto Mando Territorial // Sector Norte',
+        note: 'Estratega veterano que coordina la defensa perimetral de México y deposita una confianza casi mística en los reportes del Mayor Ruiz.'
+      },
+      {
+        name: "Ing. Mágica Margarita de Anjou (Marg'h'rit Aen-Jhu)",
+        role: 'Consultora Técnica Nativa // Transducción',
+        note: 'Erudita exiliada de Vaeloria que colabora con los ingenieros mexicanos para acoplar Núcleos de Maná con maquinaria industrial terrestre.'
+      }
+    ];
+
+    const FACTIONS_DATA = [
+      {
+        name: 'Casa Real Aen-Thal (Reino de Vaeloria)',
+        role: 'Soberanía Feudal-Arcana',
+        note: 'Dinastía gobernante de Vaeloria. Observa con cautela la súbita aparición de una nación entera sin magos tradicionales pero con artillería devastadora.'
+      },
+      {
+        name: 'Facción Militar — General Supremo Kaelen',
+        role: 'Ejército Real de Vaeloria',
+        note: 'Comandante pragmático que respeta la disciplina de formación y la potencia de fuego de los regimientos mexicanos tras los primeros choques fronterizos.'
+      },
+      {
+        name: 'Gremio de Comerciantes y Boticarios (Aurelia)',
+        role: 'Aurelio Vane, Bram y Aldric',
+        note: 'Consorcio mercantil de Puerto Coral y Aurelia. Fascinados por el acero industrial, los motores diésel, la sal refinada y el cacao mexicano.'
+      },
+      {
+        name: 'La Torre de Magos — Alto Regente Thalor',
+        role: 'Ortodoxia Arcana',
+        note: 'Élite académica que monopoliza el estudio de los núcleos y recela de la ciencia empírica que desmitifica el Campo Psi.'
+      },
+      {
+        name: 'El Clero del Maná',
+        role: 'Institución Doctrinal',
+        note: 'Interpreta el Evento Zero como un prodigio cosmológico ligado a la resonancia de las dos lunas.'
+      },
+      {
+        name: 'Canalizadores Mexicanos (Despertados)',
+        role: 'Personal Civil y Militar con Afinidad Psi',
+        note: 'Ciudadanos mexicanos cuyo sistema nervioso sintonizó espontáneamente con los 14.3 Hz tras la transferencia planetaria.'
+      }
+    ];
+
+    function renderDossiers() {
+      const grefContainer = document.getElementById('gref-list');
+      const facContainer = document.getElementById('factions-list');
+
+      if (grefContainer) {
+        grefContainer.innerHTML = GREF_PERSONNEL.map(p => `
+          <div class="p-3 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] space-y-1">
+            <div class="text-xs sm:text-sm font-bold glow-primary">${p.name}</div>
+            <div class="text-[10px] glow-accent font-bold">${p.role}</div>
+            <p class="text-xs text-[var(--text-muted)] leading-relaxed pt-1">${p.note}</p>
+          </div>
+        `).join('');
+      }
+
+      if (facContainer) {
+        facContainer.innerHTML = FACTIONS_DATA.map(f => `
+          <div class="p-3 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] space-y-1">
+            <div class="text-xs sm:text-sm font-bold glow-primary">${f.name}</div>
+            <div class="text-[10px] glow-accent font-bold">${f.role}</div>
+            <p class="text-xs text-[var(--text-muted)] leading-relaxed pt-1">${f.note}</p>
+          </div>
+        `).join('');
+      }
+    }
+
+    // =========================================================================
+    // 8. LIBRO DE VISITAS PERSISTENTE (LOCALSTORAGE)
+    // =========================================================================
+    const GUESTBOOK_STORAGE_KEY = 'bastion_silencioso_guestbook_v1';
+    const DEFAULT_GUESTBOOK_ENTRIES = [
+      {
+        name: 'Tte_Zapadores_88',
+        origin: 'Oaxaca // Nodo Sur',
+        date: '2026-11-22 21:14',
+        msg: 'Recibida la señal en 14.3 kHz fuerte y clara. Excelente trabajo con el códice de aleaciones, esperando el capítulo 17 con café listo.'
+      },
+      {
+        name: 'Mercader_Aurelia',
+        origin: 'Puerto Coral',
+        date: '2026-11-21 16:40',
+        msg: 'Si todavía tienen stock de ese "quesillo" y motores diésel mecánicos, el Síndico Vane paga en Núcleos Ámbar de primera.'
+      },
+      {
+        name: 'Lector_CRT98',
+        origin: 'Monterrey, NL',
+        date: '2026-11-20 09:05',
+        msg: 'Qué joya ver una web así hoy en día. Me transportó directo a las páginas indie de finales de los 90 pero con vibra militar buenísima.'
+      }
+    ];
+
+    let guestbookEntries = (() => {
+      try {
+        const saved = localStorage.getItem(GUESTBOOK_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+      return [...DEFAULT_GUESTBOOK_ENTRIES];
+    })();
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderGuestbook() {
+      const container = document.getElementById('guestbook-list');
+      if (!container) return;
+
+      container.innerHTML = guestbookEntries.map(entry => `
+        <div class="p-3 rounded bg-[var(--bg-deep)] border border-[var(--border-main)] space-y-1">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+            <div>
+              <strong class="glow-primary">${escapeHTML(entry.name)}</strong>
+              ${entry.origin ? `<span class="text-[var(--text-muted)]"> // ${escapeHTML(entry.origin)}</span>` : ''}
+            </div>
+            <span class="text-[10px] text-[var(--text-muted)]">[${escapeHTML(entry.date)}]</span>
+          </div>
+          <p class="text-xs text-[var(--text-main)] leading-relaxed">${escapeHTML(entry.msg)}</p>
+        </div>
+      `).join('');
+    }
+
+    function submitGuestbook(event) {
+      event.preventDefault();
+      const nameInput = document.getElementById('gb-name');
+      const originInput = document.getElementById('gb-origin');
+      const msgInput = document.getElementById('gb-msg');
+      const feedback = document.getElementById('gb-feedback');
+
+      const name = nameInput.value.trim();
+      const origin = originInput.value.trim();
+      const msg = msgInput.value.trim();
+      if (!name || !msg) return;
+
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      guestbookEntries.unshift({ name, origin, date: dateStr, msg });
+      try {
+        localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(guestbookEntries));
+      } catch (err) {}
+
+      renderGuestbook();
+      nameInput.value = '';
+      originInput.value = '';
+      msgInput.value = '';
+
+      if (feedback) {
+        feedback.textContent = '[OK] FIRMA REGISTRADA EN LA BITÁCORA DEL NODO.';
+        setTimeout(() => {
+          feedback.textContent = '';
+        }, 4000);
+      }
+    }
+
+    // =========================================================================
+    // 9. INICIALIZACIÓN AL CARGAR LA PÁGINA
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      renderChapters();
+      renderCodex();
+      renderDossiers();
+      renderGuestbook();
+    });
+  </script>
+</body>
+</html>
